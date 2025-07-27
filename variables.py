@@ -26,7 +26,7 @@ log_channel_id = os.getenv('INSTAGRAM_DOWNLOADER_LOG_CHANNEL_ID') # set to False
 bot = telebot.TeleBot(bot_token)
 
 # settings
-bot_username = "@Best_Instagram_Downloader_Bot"
+bot_username = "@igramdloadbot"
 caption_trail = "\n\n\n" + bot_username
 session_file_name = "session" # any name change should apply to .gitignore too
 
@@ -70,5 +70,3 @@ You should send an instagram post or reel link.'''
 
 reel_msg = '''reel links are not supported at the moment.
 You can send post links instead.
-
-Motivate me to add support of reels and stories by subscribing to [my youtube](https://www.youtube.com/@Arashnm80)'''
