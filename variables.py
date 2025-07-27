@@ -61,7 +61,7 @@ Here are the commands you can use:
 
 If you have questions, feedback, or run into any issues, just send a message or use one of the commands above. Im here to help!'''
 
-privacy_msg = '''This bot only stores the minimum information needed to make your experience awesome. Your data is never shared, sold, or used for advertising. We dont read your private messages or access your files. Youre always in control—delete your data or opt out at any time by using the /privacy or /delete commands.
+privacy_msg = '''This bot only stores the minimum information needed to make your experience awesome. Your data is never shared, sold, or used for advertising. We dont read your private messages or access your files.
 
 If you have questions or concerns about your privacy, just ask or contact the creator directly!'''
 
