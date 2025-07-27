@@ -1,5 +1,15 @@
 from functions import *
 from riad_azz import get_instagram_media_links
+from pymongo import MongoClient
+
+# === MongoDB Setup ===
+MONGO_URI = "mongodb+srv://asteriasmoons:2QeQF67wZY0o7gfY@buddyread-bot.qe9zrhw.mongodb.net/quickgram?retryWrites=true&w=majority&appName=buddyread-bot"
+client = MongoClient(MONGO_URI)
+db = client["quickgram"]
+download_counts = db["download_counts"]
+
+ADMIN_USER_ID = 6382917923  # <-- Replace this with your actual Telegram user ID!
+DOWNLOAD_LIMIT = 20
 
 @bot.message_handler(commands=['start'])
 def start_command_handler(message):
@@ -11,17 +21,48 @@ def help_command_handler(message):
     bot.send_message(message.chat.id, help_msg, parse_mode="Markdown", disable_web_page_preview=True)
     log(f"{bot_username} log:\n\nuser: {message.chat.id}\n\nhelp command")
 
-@bot.message_handler(commands = ['privacy'])
+@bot.message_handler(commands=['getid'])
+def get_id_handler(message):
+    bot.send_message(
+        message.chat.id,
+        f"Your Telegram user ID is: <code>{message.from_user.id}</code>",
+        parse_mode="HTML"
+    )
+
+@bot.message_handler(commands=['privacy'])
 def privacy_message_handler(message):
     bot.send_message(message.chat.id, privacy_msg, parse_mode="Markdown", disable_web_page_preview=True)
     log(f"{bot_username} log:\n\nuser: {message.chat.id}\n\nprivacy command")
 
-@bot.message_handler(regexp = spotify_link_reg)
+@bot.message_handler(regexp=spotify_link_reg)
 def spotify_link_handler(message):
-    bot.send_message(message.chat.id, "This bot only supports Instagram links. Please send an Instagram post or reel link.\n\nIf you want to download from Spotify you can check out my other bot: @SpotSeekBot")
+    bot.send_message(
+        message.chat.id,
+        "This bot only supports Instagram links. Please send an Instagram post or reel link.\n\nIf you want to download from Spotify you can check out my other bot: @SpotSeekBot"
+    )
 
-@bot.message_handler(regexp = insta_post_or_reel_reg)
+@bot.message_handler(regexp=insta_post_or_reel_reg)
 def post_or_reel_link_handler(message):
+    user_id = message.from_user.id
+
+    # --- Download Limit Check (MongoDB version) ---
+    if user_id != ADMIN_USER_ID:
+        user = download_counts.find_one({"user_id": user_id})
+        count = user["download_count"] if user else 0
+
+        if count >= DOWNLOAD_LIMIT:
+            bot.send_message(
+                message.chat.id,
+                f"You've reached the free download limit of {DOWNLOAD_LIMIT}! 🚫\n\nPlease subscribe or contact the developer to unlock more downloads."
+            )
+            return
+        else:
+            download_counts.update_one(
+                {"user_id": user_id},
+                {"$inc": {"download_count": 1}},
+                upsert=True
+            )
+
     try:
         log(f"{bot_username} log:\n\nuser:\n{message.chat.id}\n\n✅ message text:\n{message.text}")
         guide_msg_1 = bot.send_message(message.chat.id, "Ok wait a few moments...")
@@ -30,20 +71,15 @@ def post_or_reel_link_handler(message):
 
         if not post_shortcode:
             log(f"{bot_username} log:\n\nuser: {message.chat.id}\n\n🛑 error in getting post_shortcode")
-            return # post shortcode not found
+            return  # post shortcode not found
 
         media_links, caption = get_instagram_media_links(post_shortcode)
-        
+
         # todo: fix later if possible and don't let it to happen in the first place
         # if they are both empty and the riad_azz returned this error:
         # "Error extracting media info: 'NoneType' object has no attribute 'get'"
         if (not media_links) and (not caption):
             raise Exception("riad_azz returned nothing")
-
-        # # debug
-        # print(media_links)
-        # media_links = media_links[:9]
-        # print(media_links[-1])
 
         # caption handling
         if caption is None:
@@ -99,4 +135,3 @@ def wrong_pattern_handler(message):
     bot.send_message(message.chat.id, wrong_pattern_msg, parse_mode="Markdown", disable_web_page_preview=True)
 
 bot.infinity_polling()
-
