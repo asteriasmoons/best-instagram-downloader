@@ -69,4 +69,4 @@ wrong_pattern_msg = '''wrong pattern.
 You should send an instagram post or reel link.'''
 
 reel_msg = '''reel links are not supported at the moment.
-You can send post links instead.
+You can send post links instead.'''
