@@ -1,9 +1,10 @@
 from functions import *
 from riad_azz import get_instagram_media_links
 from pymongo import MongoClient
+import os
 
 # === MongoDB Setup ===
-MONGO_URI = "mongodb+srv://asteriasmoons:2QeQF67wZY0o7gfY@buddyread-bot.qe9zrhw.mongodb.net/quickgram?retryWrites=true&w=majority&appName=buddyread-bot"
+MONGO_URI = os.getenv("MONGO_URI")  # Now loaded from environment variable
 client = MongoClient(MONGO_URI)
 db = client["quickgram"]
 download_counts = db["download_counts"]
