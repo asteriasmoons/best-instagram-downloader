@@ -48,19 +48,26 @@ https://www.instagram.com/p/DFx\_jLuACs3
 Or it can be a reel link like this:
 https://www.instagram.com/reel/C59DWpvOpgF'''
 
-help_msg = '''This bot is open source and you are welcome to contribute and improve it.
-https://github.com/arashnm80/best-instagram-downloader
+help_msg = '''How can I help?
+Here are the commands you can use:
 
-You can give me energy by giving a star in github'''
+/start — Get started or see a welcome message.
 
-privacy_msg = '''This bot doesn't gather any info from the users.
+/help — View this help message anytime.
 
-Also it's whole open source and available here:
-https://github.com/arashnm80/best-instagram-downloader'''
+/getid — See your unique user ID.
 
-end_msg = '''If you liked the bot you can support me by giving a star [here](https://github.com/arashnm80/best-instagram-downloader)⭐ (it's free)
+/privacy — Read the privacy policy.
 
-You can also check out my *Music Downloader* too: @SpotSeekBot'''
+If you have questions, feedback, or run into any issues, just send a message or use one of the commands above. Im here to help!'''
+
+privacy_msg = '''This bot only stores the minimum information needed to make your experience awesome. Your data is never shared, sold, or used for advertising. We dont read your private messages or access your files. Youre always in control—delete your data or opt out at any time by using the /privacy or /delete commands.
+
+If you have questions or concerns about your privacy, just ask or contact the creator directly!'''
+
+end_msg = '''If you like the bot you can support me by giving a star [here](https://github.com/asteriasmoons/best-instagram-downloader) ⭐
+
+We are currently working on implementing the premium plans. The download limit per day is 20. Have a wonderful day and enjoy your art!'''
 
 fail_msg = '''Sorry, my process wasn't successful.
 But you can try again another time or with another link.'''
