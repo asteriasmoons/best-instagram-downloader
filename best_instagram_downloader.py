@@ -86,7 +86,7 @@ def premium_command(message):
     )
     bot.send_message(
         message.chat.id,
-        "🌟 Unlock unlimited downloads for just $7.99/month!\n\n"
+        "🌟 Unlock unlimited downloads for just $7/month!\n\n"
         "1. Click the button below to support me via Buy Me a Coffee.\n"
         "2. Run the command /getid to get your user ID.\n"
         "3. **Please include your Telegram user ID or username in the payment note.**\n"
@@ -141,14 +141,14 @@ def post_or_reel_link_handler(message):
     user_id = message.from_user.id
 
     # === Premium/Limit Logic ===
-    # if user_id == ADMIN_USER_ID or is_premium(user_id):
-    # Admin or valid premium users have no limits!
-    # pass
-    # else:
-    if is_premium(user_id):
-        # Premium users: unlimited
+    if user_id == ADMIN_USER_ID or is_premium(user_id):
+        # Admin or valid premium users have no limits!
         pass
     else:
+        # if is_premium(user_id):
+        # Premium users: unlimited
+        # pass
+        # else:
         # Everyone else (including admin): enforce limit (FOR TESTING)
         # Standard users: enforce download limit
         user = download_counts.find_one({"user_id": user_id})
