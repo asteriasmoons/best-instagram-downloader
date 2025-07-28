@@ -19,7 +19,7 @@ download_counts = db["download_counts"]
 premium_users = db["premium_users"]
 
 ADMIN_USER_ID = 6382917923  # <-- Replace with your actual Telegram user ID!
-DOWNLOAD_LIMIT = 1  # for testing; change to 20 or your actual limit
+DOWNLOAD_LIMIT = 30  # for testing; change to 20 or your actual limit
 
 # === Forced Channel Join Setup ===
 REQUIRED_CHANNEL = "@quickxgram"  # The channel users must join
