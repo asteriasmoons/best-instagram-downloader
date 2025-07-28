@@ -20,7 +20,7 @@ download_counts = db["download_counts"]
 premium_users = db["premium_users"]
 
 ADMIN_USER_ID = 6382917923  # <-- Replace this with your actual Telegram user ID!
-DOWNLOAD_LIMIT = 20
+DOWNLOAD_LIMIT = 1
 
 # === Premium: Check if user is currently premium ===
 def is_premium(user_id):
