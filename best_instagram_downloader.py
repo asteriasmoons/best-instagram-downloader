@@ -21,6 +21,40 @@ premium_users = db["premium_users"]
 ADMIN_USER_ID = 6382917923  # <-- Replace with your actual Telegram user ID!
 DOWNLOAD_LIMIT = 1  # for testing; change to 20 or your actual limit
 
+# === Forced Channel Join Setup ===
+REQUIRED_CHANNEL = "@quickxgram"  # The channel users must join
+
+
+def is_user_in_channel(user_id):
+    """
+    Returns True if the user is a member of the required channel.
+    Otherwise, returns False.
+    """
+    try:
+        member = bot.get_chat_member(REQUIRED_CHANNEL, user_id)
+        # status can be: 'creator', 'administrator', 'member', 'restricted', 'left', 'kicked'
+        return member.status in ["member", "administrator", "creator"]
+    except Exception:
+        # If the bot can't check (not an admin, or user hidden), treat as not joined
+        return False
+
+
+def force_join_prompt(chat_id):
+    """Sends a message with a button to join the channel, then returns True (user should join)."""
+    markup = telebot.types.InlineKeyboardMarkup()
+    markup.add(
+        telebot.types.InlineKeyboardButton(
+            text="🔗 Join @quickxgram", url="https://t.me/quickxgram"
+        )
+    )
+    bot.send_message(
+        chat_id,
+        "❗ To use this bot, you must join our channel first.\n\n"
+        "Tap the button below to join, then come back and press /start or try again.",
+        reply_markup=markup,
+    )
+    return True
+
 
 # === Premium: Check if user is currently premium ===
 def is_premium(user_id):
@@ -34,9 +68,14 @@ def is_premium(user_id):
     return False
 
 
-# === /start Command ===
+# === /start Command (now with force join) ===
 @bot.message_handler(commands=["start"])
 def start_command_handler(message):
+    user_id = message.from_user.id
+    # Force join check first
+    if not is_user_in_channel(user_id):
+        force_join_prompt(message.chat.id)
+        return
     bot.send_message(
         message.chat.id, start_msg, parse_mode="Markdown", disable_web_page_preview=True
     )
@@ -135,21 +174,20 @@ def spotify_link_handler(message):
     )
 
 
-# === Main Handler: Instagram Download with Premium & Limit Logic ===
+# === Main Handler: Instagram Download with Premium & Limit Logic (now with force join) ===
 @bot.message_handler(regexp=insta_post_or_reel_reg)
 def post_or_reel_link_handler(message):
     user_id = message.from_user.id
+    # Force join check first!
+    if not is_user_in_channel(user_id):
+        force_join_prompt(message.chat.id)
+        return
 
     # === Premium/Limit Logic ===
     if user_id == ADMIN_USER_ID or is_premium(user_id):
         # Admin or valid premium users have no limits!
         pass
     else:
-        # if is_premium(user_id):
-        # Premium users: unlimited
-        # pass
-        # else:
-        # Everyone else (including admin): enforce limit (FOR TESTING)
         # Standard users: enforce download limit
         user = download_counts.find_one({"user_id": user_id})
         count = user["download_count"] if user else 0
