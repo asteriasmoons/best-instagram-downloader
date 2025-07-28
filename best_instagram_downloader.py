@@ -3,7 +3,6 @@ from riad_azz import get_instagram_media_links
 from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
-import requests
 import telebot
 from datetime import datetime, timedelta
 
@@ -19,8 +18,8 @@ db = client["quickgram"]
 download_counts = db["download_counts"]
 premium_users = db["premium_users"]
 
-ADMIN_USER_ID = 6382917923  # <-- Replace this with your actual Telegram user ID!
-DOWNLOAD_LIMIT = 1
+ADMIN_USER_ID = 6382917923  # <-- Replace with your actual Telegram user ID!
+DOWNLOAD_LIMIT = 1  # for testing; change to 20 or your actual limit
 
 # === Premium: Check if user is currently premium ===
 def is_premium(user_id):
@@ -32,25 +31,6 @@ def is_premium(user_id):
             expiry = datetime.fromisoformat(expiry)
         return expiry > datetime.utcnow()
     return False
-
-# === Generate Stars Invoice Link ===
-def get_stars_invoice_link():
-    API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/createInvoiceLink"
-    payload = {
-        "title": "Unlimited Premium",
-        "description": "Unlimited downloads for 1 month.",
-        "payload": "premium-monthly",
-        "provider_token": "STARS",
-        "currency": "USD",
-        "prices": [{"label": "Monthly Unlimited", "amount": 79900}],
-    }
-    response = requests.post(API_URL, json=payload)
-    data = response.json()
-    if data.get("ok"):
-        return data["result"]  # This is the invoice link
-    else:
-        print("Failed to create invoice:", data)
-        return None
 
 # === /start Command ===
 @bot.message_handler(commands=['start'])
@@ -79,32 +59,57 @@ def privacy_message_handler(message):
     bot.send_message(message.chat.id, privacy_msg, parse_mode="Markdown", disable_web_page_preview=True)
     log(f"{bot_username} log:\n\nuser: {message.chat.id}\n\nprivacy command")
 
-# === /premium Command: Send Stars Payment Button ===
+# === /premium Command: Manual BMC Upgrade ===
 @bot.message_handler(commands=['premium'])
 def premium_command(message):
-    invoice_link = get_stars_invoice_link()
-    if not invoice_link:
-        bot.send_message(message.chat.id, "⚠️ Sorry, something went wrong creating the payment link.")
-        return
     markup = telebot.types.InlineKeyboardMarkup()
     markup.add(
         telebot.types.InlineKeyboardButton(
-            text="Buy Premium (Stars)", url=invoice_link
+            text="Buy Me a Coffee ($7/month)", url="https://buymeacoffee.com/asteriamoon"
         )
     )
     bot.send_message(
         message.chat.id,
         "🌟 Unlock unlimited downloads for just $7.99/month!\n\n"
-        "Tap the button below to pay securely with Telegram Stars. You'll be upgraded instantly after payment!",
-        reply_markup=markup
+        "1. Click the button below to support me via Buy Me a Coffee.\n"
+        "2. Run the command /getid to get your user ID.\n"
+        "3. **Please include your Telegram user ID or username in the payment note.**\n"
+        "4. After paying, reply here or DM me your payment receipt.\n"
+        "5. Once I confirm, I'll upgrade your account to premium!\n\n"
+        "Thank you so much for supporting this bot! 💖",
+        reply_markup=markup,
+        parse_mode="Markdown"
     )
+
+# === /addpremium Command: Admin-only manual upgrade ===
+@bot.message_handler(commands=['addpremium'])
+def add_premium_handler(message):
+    if message.from_user.id != ADMIN_USER_ID:
+        bot.send_message(message.chat.id, "❌ You do not have permission to use this command.")
+        return
+    try:
+        # Usage: /addpremium 123456789
+        parts = message.text.strip().split()
+        if len(parts) != 2:
+            bot.send_message(message.chat.id, "Usage: /addpremium <user_id>")
+            return
+        target_id = int(parts[1])
+        expiry = datetime.utcnow() + timedelta(days=30)
+        premium_users.update_one(
+            {"user_id": target_id},
+            {"$set": {"user_id": target_id, "premium_expiry": expiry.isoformat()}},
+            upsert=True
+        )
+        bot.send_message(message.chat.id, f"✅ User ID {target_id} is now premium for 1 month!")
+    except Exception as e:
+        bot.send_message(message.chat.id, f"Error: {str(e)}")
 
 # === Handle Spotify links (not supported) ===
 @bot.message_handler(regexp=spotify_link_reg)
 def spotify_link_handler(message):
     bot.send_message(
         message.chat.id,
-        "This bot only supports Instagram links. Please send an Instagram post or reel link.\n\nIf you want to download from Spotify you can check out my other bot: @SpotSeekBot"
+        "This bot only supports Instagram links. Please send an Instagram post or reel link.\n\nIf you want to download from Spotify you can check out the bot: @SpotSeekBot"
     )
 
 # === Main Handler: Instagram Download with Premium & Limit Logic ===
@@ -200,23 +205,6 @@ def post_or_reel_link_handler(message):
         bot.send_message(message.chat.id, fail_msg, parse_mode="Markdown", disable_web_page_preview=True)
         # import traceback
         # traceback.print_exc() # print error traceback
-
-# === Handle Successful Payment ===
-@bot.message_handler(content_types=['successful_payment'])
-def handle_successful_payment(message):
-    user_id = message.from_user.id
-    # Set premium expiry to 30 days from now (UTC)
-    expiry = datetime.utcnow() + timedelta(days=30)
-    # Store expiry as ISO string for Mongo compatibility
-    premium_users.update_one(
-        {"user_id": user_id},
-        {"$set": {"user_id": user_id, "premium_expiry": expiry.isoformat()}},
-        upsert=True
-    )
-    bot.send_message(
-        message.chat.id,
-        "🎉 Thank you for your purchase! You are now a premium user for 1 month. Unlimited downloads are unlocked."
-    )
 
 # === Fallback for Wrong Pattern ===
 @bot.message_handler(func=lambda message: True)
