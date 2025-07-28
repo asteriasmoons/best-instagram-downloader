@@ -118,10 +118,15 @@ def post_or_reel_link_handler(message):
     user_id = message.from_user.id
 
     # === Premium/Limit Logic ===
-    if user_id == ADMIN_USER_ID or is_premium(user_id):
+    # if user_id == ADMIN_USER_ID or is_premium(user_id):
         # Admin or valid premium users have no limits!
-        pass
-    else:
+       # pass
+    # else:
+    if is_premium(user_id):
+    # Premium users: unlimited
+    pass
+        else:
+        # Everyone else (including admin): enforce limit (FOR TESTING)
         # Standard users: enforce download limit
         user = download_counts.find_one({"user_id": user_id})
         count = user["download_count"] if user else 0
