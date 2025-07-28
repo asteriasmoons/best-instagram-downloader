@@ -124,8 +124,8 @@ def post_or_reel_link_handler(message):
     # else:
     if is_premium(user_id):
     # Premium users: unlimited
-    pass
-        else:
+        pass
+    else:
         # Everyone else (including admin): enforce limit (FOR TESTING)
         # Standard users: enforce download limit
         user = download_counts.find_one({"user_id": user_id})
