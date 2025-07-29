@@ -35,7 +35,7 @@ warp_proxies = os.environ["WARP_PROXIES"]
 warp_proxies = json.loads(warp_proxies)
 
 # regex
-insta_post_or_reel_reg = r'(?:https?://www\.)?instagram\.com\S*?/(p|reel)/([a-zA-Z0-9_-]{11})/?'
+insta_post_or_reel_reg = r"(?:https?://)?(?:www\.)?instagram\.com/(p|reel)/([a-zA-Z0-9_-]{5,20})(?:/)?(?:\?[^ ]*)?"
 spotify_link_reg = r'(?:https?://)?open\.spotify\.com/(track|album|playlist|artist)/[a-zA-Z0-9]+'
 
 # messages
