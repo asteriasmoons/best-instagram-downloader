@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the script name
-SCRIPT_NAME="best_instagram_downloader.py"
+SCRIPT_NAME="main.py"
 
 # Find and kill the running process
 echo "Finding and killing the existing process..."
