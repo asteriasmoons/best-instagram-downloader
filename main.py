@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 import telebot
 from datetime import datetime, timedelta
+import traceback  # <-- For full error traces
 
 # === ENV and Bot Setup ===
 load_dotenv()  # Load .env variables
@@ -203,27 +204,32 @@ def post_or_reel_link_handler(message):
                 {"user_id": user_id}, {"$inc": {"download_count": 1}}, upsert=True
             )
 
-    # === Usual Instagram Download Logic (unchanged) ===
+    # === Usual Instagram Download Logic (with debugging) ===
     try:
         log(
             f"{bot_username} log:\n\nuser:\n{message.chat.id}\n\n✅ message text:\n{message.text}"
         )
+        print(f"[DEBUG] Incoming message: {message.text}")
         guide_msg_1 = bot.send_message(message.chat.id, "Ok wait a few moments...")
         post_shortcode = get_post_or_reel_shortcode_from_link(message.text)
-        print(post_shortcode)
+        print(f"[DEBUG] Extracted shortcode: {post_shortcode}")
 
         if not post_shortcode:
             log(
                 f"{bot_username} log:\n\nuser: {message.chat.id}\n\n🛑 error in getting post_shortcode"
             )
+            print("[DEBUG] ERROR: Failed to extract shortcode from link.")
             return  # post shortcode not found
 
         media_links, caption = get_instagram_media_links(post_shortcode)
+        print(f"[DEBUG] Extracted media_links: {media_links}")
+        print(f"[DEBUG] Extracted caption: {caption}")
 
         # todo: fix later if possible and don't let it to happen in the first place
         # if they are both empty and the riad_azz returned this error:
         # "Error extracting media info: 'NoneType' object has no attribute 'get'"
         if (not media_links) and (not caption):
+            print("[DEBUG] ERROR: Both media_links and caption are empty!")
             raise Exception("riad_azz returned nothing")
 
         # caption handling
@@ -232,9 +238,11 @@ def post_or_reel_link_handler(message):
         while len(caption) + len(caption_trail) > 1024:
             caption = caption[:-1]
         caption = caption + caption_trail
+        print(f"[DEBUG] Final caption to send: {caption}")
 
         media_list = []
         for idx, item in enumerate(media_links):
+            print(f"[DEBUG] Media item {idx}: {item}")
             if item["type"] == "video":
                 if idx == 0:
                     media = telebot.types.InputMediaVideo(item["url"], caption=caption)
@@ -247,20 +255,25 @@ def post_or_reel_link_handler(message):
                     media = telebot.types.InputMediaPhoto(item["url"])
             media_list.append(media)
 
+        print(f"[DEBUG] Full media_list: {media_list}")
+
         def chunk_list(lst, n):
             for i in range(0, len(lst), n):
                 yield lst[i : i + n]
 
         if len(media_list) == 1:
             media = media_list[0]
+            print(f"[DEBUG] Sending single media: {media}")
             if isinstance(media, telebot.types.InputMediaPhoto):
                 bot.send_photo(message.chat.id, media.media, caption=media.caption)
             else:
                 bot.send_video(message.chat.id, media.media, caption=media.caption)
         else:
+            print(f"[DEBUG] Sending media group in chunks of 10")
             for chunk in chunk_list(media_list, 10):
-                print(chunk)
+                print(f"[DEBUG] Sending chunk: {chunk}")
                 bot.send_media_group(message.chat.id, chunk)
+        print(f"[DEBUG] Sending end message.")
         bot.send_message(
             message.chat.id,
             end_msg,
@@ -268,24 +281,24 @@ def post_or_reel_link_handler(message):
             disable_web_page_preview=True,
         )
         try_to_delete_message(message.chat.id, guide_msg_1.message_id)
+        print(f"[DEBUG] Finished processing for user {message.chat.id}")
         return
     except Exception as e:
         try:
             try_to_delete_message(message.chat.id, guide_msg_1.message_id)
-        except:
-            pass
+        except Exception as del_ex:
+            print(f"[DEBUG] Error deleting guide message: {del_ex}")
         log(
             f"{bot_username} log:\n\nuser: {message.chat.id}\n\n🛑 error in main body: {str(e)}"
         )
+        print(f"[ERROR] Exception during post_or_reel_link_handler: {e}")
+        traceback.print_exc()  # <-- Show full stack trace in Railway logs
         bot.send_message(
             message.chat.id,
             fail_msg,
             parse_mode="Markdown",
             disable_web_page_preview=True,
         )
-        # import traceback
-        # traceback.print_exc() # print error traceback
-
 
 # === Fallback for Wrong Pattern ===
 @bot.message_handler(func=lambda message: True)
@@ -299,6 +312,5 @@ def wrong_pattern_handler(message):
         parse_mode="Markdown",
         disable_web_page_preview=True,
     )
-
 
 bot.infinity_polling()
