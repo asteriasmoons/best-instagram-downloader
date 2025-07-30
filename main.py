@@ -7,6 +7,14 @@ import telebot
 from datetime import datetime, timedelta
 import traceback  # <-- For full error traces
 
+import base64  # <-- add with your other imports
+
+# --- Restore session file from Railway environment variable ---
+b64 = os.getenv("IG_SESSION_B64")
+if b64:
+    with open("session-asteriasmoons", "wb") as f:
+        f.write(base64.b64decode(b64))
+
 # === ENV and Bot Setup ===
 load_dotenv()  # Load .env variables
 BOT_TOKEN = os.getenv("BEST_INSTAGRAM_DOWNLOADER_BOT_API")
