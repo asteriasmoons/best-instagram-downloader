@@ -67,7 +67,7 @@ If you have questions or concerns about your privacy, just ask or contact the cr
 
 end_msg = '''If you like the bot you can support me by giving a star [here](https://github.com/asteriasmoons/best-instagram-downloader) ⭐
 
-We are currently working on implementing the premium plans. The download limit per day is 20. Have a wonderful day and enjoy your art!'''
+As a note, not every link will work, and please refrain from spamming the bot with links. Thank you, enjoy your downloads.'''
 
 fail_msg = '''Sorry, my process wasn't successful.
 But you can try again another time or with another link.'''
